@@ -53,11 +53,15 @@ const params: HoloParams = {
   },
 };
 
-/** Render "MARIA SHOWALTER" (Fraunces) to a transparent canvas → the cloth print. */
+/**
+ * Render the site's intro lockup onto a transparent canvas → the cloth print.
+ * Matches maria-showalter/index.html: "MARIA" in Fraunces blue over
+ * "Showalter" in Fraunces italic black.
+ */
 async function makeNameTexture(): Promise<HTMLImageElement> {
-  // ensure Fraunces is ready so the ink is drawn in the real face
   try {
     await (document as unknown as { fonts: FontFaceSet }).fonts.load("600 150px 'Fraunces'");
+    await (document as unknown as { fonts: FontFaceSet }).fonts.load("italic 400 150px 'Fraunces'");
     await (document as unknown as { fonts: FontFaceSet }).fonts.ready;
   } catch {
     /* fall back to serif */
@@ -69,17 +73,55 @@ async function makeNameTexture(): Promise<HTMLImageElement> {
   cv.width = w; cv.height = h;
   const ctx = cv.getContext('2d')!;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#ffffff'; // white ink reads cleanly over the electric-blue holo
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  // white ink reads cleanly over the electric-blue holo — keeps the site's
+  // Fraunces lockup (MARIA semibold over Showalter italic), just legible
+  ctx.fillStyle = '#ffffff';
   ctx.font = "600 300px 'Fraunces', Georgia, serif";
-  ctx.fillText('MARIA', w / 2, h * 0.36);
-  ctx.font = "600 176px 'Fraunces', Georgia, serif";
-  ctx.letterSpacing = '10px';
-  ctx.fillText('SHOWALTER', w / 2, h * 0.66);
+  ctx.fillText('MARIA', w / 2, h * 0.35);
+  ctx.font = "italic 400 210px 'Fraunces', Georgia, serif";
+  ctx.fillText('Showalter', w / 2, h * 0.66);
   const img = new Image();
   await new Promise<void>((res) => { img.onload = () => res(); img.src = cv.toDataURL('image/png'); });
   return img;
+}
+
+/** Wire the background swatches + reset button in hero.html. */
+function isDark(hex: string): boolean {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
+}
+
+function setBackground(btn: HTMLElement) {
+  const hex = btn.dataset.bg!;
+  // per-swatch film grain: the "paper" swatch renders grain-free for a clean
+  // bright white; the others keep a touch of grain (nice on dark backgrounds)
+  const noise = btn.dataset.noise !== undefined ? Number(btn.dataset.noise) : 0.12;
+  // tone mapping darkens the clear color, so a "white" bg renders gray unless
+  // we lift exposure; the paper swatch pushes it to a genuinely bright white
+  const exposure = btn.dataset.exposure !== undefined ? Number(btn.dataset.exposure) : 0.62;
+  params.render.background = hex;
+  params.render.noise = noise;
+  params.render.exposure = exposure;
+  app.applyParams(params);
+  document.body.style.background = hex;
+  // keep overlay + control chrome legible on any background
+  const dark = isDark(hex);
+  document.documentElement.style.setProperty('--ink', dark ? '#f8f6f3' : '#0a0a0a');
+  document.getElementById('controls')?.classList.toggle('dark', dark);
+  document.querySelectorAll<HTMLElement>('.sw').forEach((el) => el.classList.toggle('active', el === btn));
+}
+
+function wireControls() {
+  document.querySelectorAll<HTMLButtonElement>('.sw').forEach((btn) => {
+    btn.addEventListener('click', () => setBackground(btn));
+  });
+  document.getElementById('reset')?.addEventListener('click', () => app.resetCloth());
+  // default to the clean "paper" white
+  const paper = document.querySelector<HTMLElement>('.sw[data-paper]');
+  if (paper) setBackground(paper);
 }
 
 async function boot() {
@@ -88,6 +130,7 @@ async function boot() {
   app.setClothImage(nameImg);
   app.applyParams(params); // re-apply after cloth rebuild so uniforms stick
   app.reveal();
+  wireControls();
 }
 
 boot();

@@ -8,42 +8,88 @@
       @font-face {
         font-family: 'Fraunces';
         src: url('/Fraunces-SemiBold.ttf') format('truetype');
-        font-weight: 600;
-        font-display: block;
+        font-weight: 600; font-style: normal; font-display: block;
       }
+      @font-face {
+        font-family: 'Fraunces';
+        src: url('/Fraunces-Italic.ttf') format('truetype');
+        font-weight: 400; font-style: italic; font-display: block;
+      }
+      :root { --ink: #0a0a0a; --blue: #0044ff; }
       html, body {
         margin: 0; padding: 0; width: 100%; height: 100%;
         overflow: hidden; background: #ffffff;
         font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        transition: background .35s ease;
       }
       #hero-host { position: fixed; inset: 0; }
       #hero-host canvas { display: block; touch-action: none; }
+
       .overlay { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
       .kicker {
         position: absolute; top: 26px; left: 5vw;
         font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
-        color: #0044ff;
+        color: var(--blue);
       }
       .sub {
         position: absolute; bottom: 30px; left: 5vw;
         font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-        color: #0a0a0a; opacity: .5; max-width: 60vw; line-height: 1.7;
+        color: var(--ink); opacity: .5; max-width: 52vw; line-height: 1.7;
+        transition: color .35s ease;
       }
-      .grab-hint {
-        position: absolute; bottom: 30px; right: 5vw;
-        font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
-        color: #888; text-align: right;
+
+      /* control bar */
+      .controls {
+        position: fixed; bottom: 24px; right: 5vw; z-index: 10;
+        display: flex; align-items: center; gap: 12px;
+        background: rgba(255,255,255,.7); backdrop-filter: blur(8px);
+        border: 1px solid rgba(0,0,0,.1); border-radius: 100px;
+        padding: 8px 12px;
       }
+      .controls.dark { background: rgba(10,10,10,.55); border-color: rgba(255,255,255,.15); }
+      .ctl-label {
+        font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+        color: #888; margin-right: 2px;
+      }
+      .sw {
+        width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+        border: 1px solid rgba(0,0,0,.25); background: var(--c); padding: 0;
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+      .sw:hover { transform: scale(1.15); }
+      .sw.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--blue); }
+      .controls.dark .sw.active { box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px var(--blue); }
+      .reset {
+        font-family: inherit; font-size: 9px; letter-spacing: .14em;
+        text-transform: uppercase; color: var(--blue);
+        border: 1px solid var(--blue); background: none; border-radius: 100px;
+        padding: 6px 12px; cursor: pointer; margin-left: 4px;
+        transition: background .2s ease, color .2s ease;
+      }
+      .reset:hover { background: var(--blue); color: #fff; }
     </style>
   </head>
   <body>
     <div id="hero-host"></div>
+
     <div class="overlay">
       <div class="kicker">Maria Showalter · CS + design engineer</div>
       <div class="sub">Software &amp; design engineer — the header is a real holographic
         fabric with my name printed on it. Grab it.</div>
-      <div class="grab-hint">drag to grab the cloth<br>drag empty space to orbit</div>
     </div>
+
+    <div class="controls" id="controls">
+      <span class="ctl-label">bg</span>
+      <button class="sw" data-bg="#ffffff" data-noise="0" data-exposure="1.15" data-paper style="--c:#ffffff" title="paper white (clean)"></button>
+      <button class="sw" data-bg="#f6f7fb" style="--c:#f6f7fb" title="soft white"></button>
+      <button class="sw" data-bg="#f8f6f3" style="--c:#f8f6f3" title="off-white"></button>
+      <button class="sw" data-bg="#eef0ff" style="--c:#eef0ff" title="ice"></button>
+      <button class="sw" data-bg="#0a0a0a" style="--c:#0a0a0a" title="ink black"></button>
+      <button class="sw" data-bg="#071033" style="--c:#071033" title="deep navy"></button>
+      <button class="sw" data-bg="#0044ff" style="--c:#0044ff" title="electric blue"></button>
+      <button class="reset" id="reset">reset cloth</button>
+    </div>
+
     <script type="module" src="/src/hero.ts"></script>
   </body>
 </html>
