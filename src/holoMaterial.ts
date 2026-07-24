@@ -10,6 +10,7 @@ export interface HoloUniforms {
   uHueShift: THREE.IUniform<number>;
   uSparkle: THREE.IUniform<number>;
   uSpecTint: THREE.IUniform<number>;
+  uCoolLock: THREE.IUniform<number>;
   uSurfaceMap: THREE.IUniform<THREE.Texture>;
   uSurfaceOpacity: THREE.IUniform<number>;
   uCavityAmount: THREE.IUniform<number>;
@@ -60,6 +61,7 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
     uHueShift: { value: 0.0 },
     uSparkle: { value: 0.6 },
     uSpecTint: { value: 0.85 },
+    uCoolLock: { value: 0 },
     uSurfaceMap: { value: surfaceTexture },
     uSurfaceOpacity: { value: 1.0 },
     uCavityAmount: { value: 0 },
@@ -91,6 +93,7 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
       uniform float uHueShift;
       uniform float uSparkle;
       uniform float uSpecTint;
+      uniform float uCoolLock;
       uniform sampler2D uSurfaceMap;
       uniform float uSurfaceOpacity;
       varying float vCavity;
@@ -148,6 +151,10 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
           // radial distance; flakes only nudge the phase slightly
           float radial = length(vHoloUv - 0.5) * uRadialFreq;
           float hue = fract(uHueShift + facing * uBandFreq + radial + rnd * 0.06);
+          // cool-lock: fold the full rainbow into a blue <-> cyan <-> violet arc
+          // (hue ~0.50 cyan, ~0.66 blue, ~0.76 violet) so no warm bleed survives
+          float coolHue = 0.63 + 0.13 * cos(6.28318 * hue);
+          hue = mix(hue, coolHue, uCoolLock);
           vec3 rainbow = holoHsv2rgb(vec3(hue, uSaturation, 1.0));
 
           // flake mask: soft variation so the foil reads as granular, not flat

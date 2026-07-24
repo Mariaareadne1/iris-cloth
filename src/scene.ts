@@ -330,6 +330,8 @@ export class HoloApp {
     this.scene.environmentIntensity = p.render.environment;
 
     const u = this.holoUniforms;
+    // Maria's blue presets lock the holographic hue into a cool arc
+    u.uCoolLock.value = /^(Iris Blue|Ice|Blue Chrome)$/.test(p.material.preset) ? 1 : 0;
     u.uHoloIntensity.value = p.material.holoIntensity;
     u.uHoloScale.value = p.material.holoScale;
     u.uBandFreq.value = p.material.bandFreq;
