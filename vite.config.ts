@@ -6,4 +6,12 @@ export default defineConfig({
   server: {
     port: Number(process.env.PORT) || 5199,
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        hero: 'hero.html',
+      },
+    },
+  },
 });
