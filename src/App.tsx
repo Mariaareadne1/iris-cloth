@@ -92,6 +92,64 @@ const PRESET_VALUES: Record<string, PresetBundle> = {
     },
     render: { ...RENDER_DEFAULTS },
   },
+  // ── Maria's versions ──────────────────────────────────────────────
+  'Iris Blue': {
+    material: {
+      finish: 'Glossy',
+      baseColor: '#0a2bd6',
+      holoIntensity: 2.2,
+      holoScale: 300,
+      bandFreq: 0.9,
+      saturation: 0.85,
+      hueShift: 0.60,
+      sparkle: 0.5,
+      specTint: 0.5,
+      iridescence: 0.7,
+      metalness: 1.0,
+      sheen: 0.1,
+      bump: 2.0,
+      bumpTiling: 3,
+      ...FINISH_VALUES.Glossy,
+    },
+    render: { ...RENDER_DEFAULTS },
+  },
+  Ice: {
+    material: {
+      finish: 'Satin',
+      baseColor: '#cfe0ff',
+      holoIntensity: 1.2,
+      holoScale: 180,
+      bandFreq: 0.7,
+      saturation: 0.5,
+      hueShift: 0.58,
+      sparkle: 0.3,
+      specTint: 0.7,
+      iridescence: 0.5,
+      metalness: 0.6,
+      sheen: 0.2,
+      bump: 1.0,
+      bumpTiling: 3,
+      ...FINISH_VALUES.Satin,
+    },
+    render: { ...RENDER_DEFAULTS },
+  },
+  'Blue Chrome': {
+    material: {
+      finish: 'Glossy',
+      baseColor: '#8fb2ff',
+      holoIntensity: 0.4,
+      sparkle: 0.25,
+      specTint: 0.3,
+      iridescence: 0.25,
+      metalness: 1,
+      sheen: 0,
+      bump: 0.1,
+      ...FINISH_VALUES.Glossy,
+      roughness: 0.05,
+      coatRoughness: 0.05,
+    },
+    render: { ...RENDER_DEFAULTS },
+  },
 };
 
 /**
@@ -308,8 +366,8 @@ export default function App() {
       material: {
         preset: {
           type: 'select' as const,
-          options: ['Holo', 'Chrome', 'Black Cloth'],
-          default: 'Holo',
+          options: ['Iris Blue', 'Ice', 'Blue Chrome', 'Holo', 'Chrome', 'Black Cloth'],
+          default: 'Iris Blue',
         },
         finish: {
           type: 'select' as const,
