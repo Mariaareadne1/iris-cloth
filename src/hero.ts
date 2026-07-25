@@ -171,6 +171,14 @@ function buildPanel() {
   applyPalette(PALETTES[0]);
 }
 
+/** Embed mode (?bare): hide the hero's own overlay/controls so it can be
+ *  dropped inside another page (e.g. an iframe) as just the living cloth. */
+function applyBareMode() {
+  if (!new URLSearchParams(location.search).has('bare')) return;
+  document.querySelectorAll<HTMLElement>('.overlay, .hero-controls, .panel')
+    .forEach((el) => { el.style.display = 'none'; });
+}
+
 async function boot() {
   app.applyParams(params);
   // drape the portrait; if it fails to load, the cloth stays a blank sheet
@@ -184,6 +192,7 @@ async function boot() {
   app.applyParams(params);   // re-apply uniforms after the cloth rebuild
   app.reveal();
   buildPanel();
+  applyBareMode();
 }
 
 boot();
