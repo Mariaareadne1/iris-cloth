@@ -40,6 +40,10 @@ export interface HoloParams {
     sparkle: number;
     specTint: number;
     iridescence: number;
+    /** 0 = holographic rainbow, 1 = brand palette (uPalA/B/C) */
+    paletteMix?: number;
+    /** three-stop brand palette as hex strings */
+    palette?: [string, string, string];
     roughness: number;
     metalness: number;
     clearcoat: number;
@@ -332,6 +336,13 @@ export class HoloApp {
     const u = this.holoUniforms;
     // Maria's blue presets lock the holographic hue into a cool arc
     u.uCoolLock.value = /^(Iris Blue|Ice|Blue Chrome)$/.test(p.material.preset) ? 1 : 0;
+    // brand palette: when set, the cloth cycles chosen colors instead of a rainbow
+    u.uPalMix.value = p.material.paletteMix ?? 0;
+    if (p.material.palette) {
+      u.uPalA.value.set(p.material.palette[0]);
+      u.uPalB.value.set(p.material.palette[1]);
+      u.uPalC.value.set(p.material.palette[2]);
+    }
     u.uHoloIntensity.value = p.material.holoIntensity;
     u.uHoloScale.value = p.material.holoScale;
     u.uBandFreq.value = p.material.bandFreq;
@@ -375,6 +386,13 @@ export class HoloApp {
 
   resetCloth() {
     this.sim.reset();
+    this.clothGeometry.attributes.position.needsUpdate = true;
+    this.clothGeometry.computeVertexNormals();
+  }
+
+  /** Open flat and still: snap the cloth to a flat rectangle at rest. */
+  flattenCloth() {
+    this.sim.flatten();
     this.clothGeometry.attributes.position.needsUpdate = true;
     this.clothGeometry.computeVertexNormals();
   }

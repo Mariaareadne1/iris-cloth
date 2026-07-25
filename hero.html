@@ -34,38 +34,69 @@
       .sub {
         position: absolute; bottom: 30px; left: 5vw;
         font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-        color: var(--ink); opacity: .5; max-width: 52vw; line-height: 1.7;
+        color: var(--ink); opacity: .5; max-width: 40vw; line-height: 1.7;
         transition: color .35s ease;
       }
 
-      /* control bar */
+      /* ── left palette panel ── */
+      .panel {
+        position: fixed; top: 50%; left: 5vw; transform: translateY(-50%); z-index: 10;
+        width: 190px; padding: 14px; border-radius: 14px;
+        background: rgba(255,255,255,.72); backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,.1);
+        display: flex; flex-direction: column; gap: 8px;
+      }
+      .panel.dark { background: rgba(10,10,10,.5); border-color: rgba(255,255,255,.14); }
+      .panel-title {
+        font-size: 8px; letter-spacing: .2em; text-transform: uppercase;
+        color: #888; margin: 2px 0 2px;
+      }
+      #pal-list { display: flex; flex-direction: column; gap: 6px; }
+      .pal {
+        display: flex; align-items: center; gap: 10px; cursor: pointer;
+        border: 1px solid rgba(0,0,0,.1); background: rgba(255,255,255,.4);
+        border-radius: 10px; padding: 7px 9px; text-align: left; width: 100%;
+        transition: border-color .2s, transform .12s;
+      }
+      .panel.dark .pal { border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.05); }
+      .pal:hover { transform: translateX(2px); }
+      .pal.active { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+      .pal-chip { width: 26px; height: 26px; border-radius: 7px; flex: 0 0 auto; }
+      .pal-text { display: flex; flex-direction: column; line-height: 1.25; }
+      .pal-text b {
+        font-family: 'Fraunces', Georgia, serif; font-weight: 600;
+        font-size: 13px; color: var(--ink);
+      }
+      .pal-text small {
+        font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #999;
+      }
+      .shimmer-row { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+      #shimmer { -webkit-appearance: none; appearance: none; width: 100%; height: 2px;
+        background: rgba(0,0,0,.15); border-radius: 2px; outline: none; }
+      .panel.dark #shimmer { background: rgba(255,255,255,.2); }
+      #shimmer::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px;
+        border-radius: 50%; background: var(--blue); cursor: pointer; }
+
+      /* ── bottom-right background picker ── */
       .controls {
         position: fixed; bottom: 24px; right: 5vw; z-index: 10;
         display: flex; align-items: center; gap: 12px;
-        background: rgba(255,255,255,.7); backdrop-filter: blur(8px);
-        border: 1px solid rgba(0,0,0,.1); border-radius: 100px;
-        padding: 8px 12px;
+        background: rgba(255,255,255,.72); backdrop-filter: blur(8px);
+        border: 1px solid rgba(0,0,0,.1); border-radius: 100px; padding: 8px 12px;
       }
-      .controls.dark { background: rgba(10,10,10,.55); border-color: rgba(255,255,255,.15); }
-      .ctl-label {
-        font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
-        color: #888; margin-right: 2px;
-      }
-      .sw {
-        width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+      .controls.dark { background: rgba(10,10,10,.5); border-color: rgba(255,255,255,.15); }
+      .ctl-label { font-size: 8px; letter-spacing: .18em; text-transform: uppercase; color: #888; margin-right: 2px; }
+      .sw { width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
         border: 1px solid rgba(0,0,0,.25); background: var(--c); padding: 0;
-        transition: transform .15s ease, box-shadow .15s ease;
-      }
+        transition: transform .15s, box-shadow .15s; }
       .sw:hover { transform: scale(1.15); }
       .sw.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--blue); }
       .controls.dark .sw.active { box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px var(--blue); }
-      .reset {
-        font-family: inherit; font-size: 9px; letter-spacing: .14em;
+      .reset { font-family: inherit; font-size: 9px; letter-spacing: .14em;
         text-transform: uppercase; color: var(--blue);
         border: 1px solid var(--blue); background: none; border-radius: 100px;
         padding: 6px 12px; cursor: pointer; margin-left: 4px;
-        transition: background .2s ease, color .2s ease;
-      }
+        transition: background .2s, color .2s; }
       .reset:hover { background: var(--blue); color: #fff; }
     </style>
   </head>
@@ -74,11 +105,20 @@
 
     <div class="overlay">
       <div class="kicker">Maria Showalter · CS + design engineer</div>
-      <div class="sub">Software &amp; design engineer — the header is a real holographic
-        fabric with my name printed on it. Grab it.</div>
+      <div class="sub">A holographic fabric printed with my name. Pick a palette — it recolors
+        the cloth and the page. Grab the cloth to ripple it.</div>
     </div>
 
-    <div class="controls" id="controls">
+    <div class="panel dark-aware" id="panel">
+      <div class="panel-title">Palette</div>
+      <div id="pal-list"></div>
+      <div class="shimmer-row">
+        <div class="panel-title">Shimmer</div>
+        <input id="shimmer" type="range" min="0" max="3" step="0.05" value="1.7" />
+      </div>
+    </div>
+
+    <div class="controls dark-aware" id="controls">
       <span class="ctl-label">bg</span>
       <button class="sw" data-bg="#ffffff" data-noise="0" data-exposure="1.15" data-paper style="--c:#ffffff" title="paper white (clean)"></button>
       <button class="sw" data-bg="#f6f7fb" style="--c:#f6f7fb" title="soft white"></button>

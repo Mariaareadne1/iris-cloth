@@ -156,6 +156,24 @@ export class ClothSim {
     this.grab = null;
   }
 
+  /** Snap the cloth to a flat rectangle at rest with no velocity — opens
+   *  flat and, since there are no forces, stays perfectly still. */
+  flatten() {
+    const stepX = this.width / this.segX;
+    const stepY = this.height / this.segY;
+    let k = 0;
+    for (let y = 0; y < this.rows; y++) {
+      for (let x = 0; x < this.cols; x++) {
+        this.positions[k] = (x - this.segX / 2) * stepX;
+        this.positions[k + 1] = (this.segY / 2 - y) * stepY;
+        this.positions[k + 2] = 0;
+        k += 3;
+      }
+    }
+    this.prev.set(this.positions);
+    this.grab = null;
+  }
+
   /** Give a random gentle impulse — a "poke" from nowhere. */
   poke(strength = 0.5) {
     const p = this.positions;

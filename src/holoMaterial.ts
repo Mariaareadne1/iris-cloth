@@ -11,6 +11,10 @@ export interface HoloUniforms {
   uSparkle: THREE.IUniform<number>;
   uSpecTint: THREE.IUniform<number>;
   uCoolLock: THREE.IUniform<number>;
+  uPalMix: THREE.IUniform<number>;
+  uPalA: THREE.IUniform<THREE.Color>;
+  uPalB: THREE.IUniform<THREE.Color>;
+  uPalC: THREE.IUniform<THREE.Color>;
   uSurfaceMap: THREE.IUniform<THREE.Texture>;
   uSurfaceOpacity: THREE.IUniform<number>;
   uCavityAmount: THREE.IUniform<number>;
@@ -62,6 +66,10 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
     uSparkle: { value: 0.6 },
     uSpecTint: { value: 0.85 },
     uCoolLock: { value: 0 },
+    uPalMix: { value: 0 },
+    uPalA: { value: new THREE.Color('#0044ff') },
+    uPalB: { value: new THREE.Color('#6a4bff') },
+    uPalC: { value: new THREE.Color('#22c1ff') },
     uSurfaceMap: { value: surfaceTexture },
     uSurfaceOpacity: { value: 1.0 },
     uCavityAmount: { value: 0 },
@@ -94,6 +102,10 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
       uniform float uSparkle;
       uniform float uSpecTint;
       uniform float uCoolLock;
+      uniform float uPalMix;
+      uniform vec3 uPalA;
+      uniform vec3 uPalB;
+      uniform vec3 uPalC;
       uniform sampler2D uSurfaceMap;
       uniform float uSurfaceOpacity;
       varying float vCavity;
@@ -111,6 +123,14 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
         vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
         rgb = rgb * rgb * (3.0 - 2.0 * rgb); // smooth rainbow
         return c.z * mix(vec3(1.0), rgb, c.y);
+      }
+
+      // cyclic 3-stop brand palette — replaces the rainbow when uPalMix > 0
+      vec3 palRamp(float t) {
+        t = fract(t) * 3.0;
+        if (t < 1.0) return mix(uPalA, uPalB, t);
+        if (t < 2.0) return mix(uPalB, uPalC, t - 1.0);
+        return mix(uPalC, uPalA, t - 2.0);
       }
       ` +
       shader.fragmentShader.replace(
@@ -150,12 +170,14 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
           // diffraction sweep: broad smooth bands driven by view angle and
           // radial distance; flakes only nudge the phase slightly
           float radial = length(vHoloUv - 0.5) * uRadialFreq;
-          float hue = fract(uHueShift + facing * uBandFreq + radial + rnd * 0.06);
+          float rawPhase = fract(uHueShift + facing * uBandFreq + radial + rnd * 0.06);
+          float hue = rawPhase;
           // cool-lock: fold the full rainbow into a blue <-> cyan <-> violet arc
-          // (hue ~0.50 cyan, ~0.66 blue, ~0.76 violet) so no warm bleed survives
           float coolHue = 0.63 + 0.13 * cos(6.28318 * hue);
           hue = mix(hue, coolHue, uCoolLock);
           vec3 rainbow = holoHsv2rgb(vec3(hue, uSaturation, 1.0));
+          // brand-palette override: cycle the chosen colors instead of the rainbow
+          rainbow = mix(rainbow, palRamp(rawPhase), uPalMix);
 
           // flake mask: soft variation so the foil reads as granular, not flat
           float flake = 0.82 + 0.18 * rnd2;
