@@ -2,40 +2,53 @@ import { HoloApp, type HoloParams } from './scene.ts';
 
 /**
  * Standalone "header" build of Iris — no DialKit panel, no React.
- * Boots the cloth engine directly, drapes Maria's name onto a WHITE fabric as
- * its printed surface, opens flat & still, and exposes a small palette panel
- * that recolors both the holographic sheen and the page accent.
+ * Boots the cloth engine directly, drapes Maria's portrait onto a WHITE fabric
+ * as its printed surface, opens flat & still, and exposes a palette panel that
+ * recolors both the holographic sheen and the page accent. Background is a
+ * fixed bright white.
  */
 
 interface Palette {
   name: string;
   sub: string;
-  /** three-stop holographic ramp on the cloth */
-  holo: [string, string, string];
-  /** page + accent colour this palette themes the site with */
-  accent: string;
+  holo: [string, string, string]; // three-stop holographic ramp
+  accent: string;                  // page/accent colour this palette themes
 }
 
+// Ten palettes to choose from — pick your favourite four.
 const PALETTES: Palette[] = [
-  { name: 'Iris',   sub: 'blue · violet',    holo: ['#0044ff', '#6a4bff', '#22c1ff'], accent: '#0044ff' },
-  { name: 'Sunset', sub: 'orange · blue',    holo: ['#0044ff', '#ff7a1a', '#ffd24d'], accent: '#ff6a00' },
-  { name: 'Ice',    sub: 'cyan',             holo: ['#0aa3ff', '#22c1ff', '#cfeaff'], accent: '#0aa3ff' },
-  { name: 'Rose',   sub: 'magenta · blue',   holo: ['#0044ff', '#ff4dc4', '#8a5cff'], accent: '#e0359a' },
+  { name: 'Iris',    sub: 'blue · violet',   holo: ['#0044ff', '#6a4bff', '#22c1ff'], accent: '#0044ff' },
+  { name: 'Sunset',  sub: 'orange · blue',   holo: ['#0044ff', '#ff7a1a', '#ffd24d'], accent: '#ff6a00' },
+  { name: 'Ice',     sub: 'cyan',            holo: ['#0aa3ff', '#22c1ff', '#cfeaff'], accent: '#0aa3ff' },
+  { name: 'Rose',    sub: 'magenta · blue',  holo: ['#0044ff', '#ff4dc4', '#8a5cff'], accent: '#e0359a' },
+  { name: 'Chrome',  sub: 'steel · blue',    holo: ['#5a78ff', '#c9d6ff', '#8fb2ff'], accent: '#5a78ff' },
+  { name: 'Emerald', sub: 'green · blue',    holo: ['#0044ff', '#12c2a0', '#7bf0c0'], accent: '#0aa06e' },
+  { name: 'Gold',    sub: 'gold · blue',     holo: ['#0044ff', '#ffcf4d', '#fff2c2'], accent: '#d99a00' },
+  { name: 'Grape',   sub: 'violet · pink',   holo: ['#6a4bff', '#c04bff', '#ff8adf'], accent: '#8a2be2' },
+  { name: 'Aqua',    sub: 'teal · cyan',     holo: ['#0aa3ff', '#12e0c0', '#c7fff2'], accent: '#00b3a4' },
+  { name: 'Ember',   sub: 'red · orange',    holo: ['#ff3b3b', '#ff7a1a', '#ffd24d'], accent: '#ff4d2e' },
 ];
+
+// The knobs offered under "Play with" — keep the one or two you like.
+interface Knob {
+  id: string;
+  label: string;
+  min: number; max: number; step: number; value: number;
+  apply: (v: number) => void;
+}
 
 const host = document.getElementById('hero-host')!;
 const app = new HoloApp(host);
 
-// WHITE fabric with a holographic sheen from the brand palette. The name is
-// printed in the site's own blue + black, which reads cleanly on white.
+// WHITE fabric; the portrait is the printed surface, the palette is the sheen.
 const params: HoloParams = {
   performance: 'High',
   physics: { viscosity: 0.6, stiffness: 1, iterations: 14, smoothing: 0.045, grabRadius: 0.3 },
   material: {
-    preset: 'Holo',            // coolLock off; the palette drives colour
+    preset: 'Holo',
     finish: 'Glossy',
-    baseColor: '#eef1fb',      // near-white cloth
-    holoIntensity: 1.7,
+    baseColor: '#eef1fb',
+    holoIntensity: 1.2,
     holoScale: 300,
     bandFreq: 0.9,
     saturation: 0.95,
@@ -56,7 +69,7 @@ const params: HoloParams = {
   images: { edit: false, useImage: true, scale: 1, rotation: 0, opacity: 1, cornerRadius: 0 },
   render: {
     background: '#ffffff',
-    exposure: 1.15,
+    exposure: 1.15,      // lifts the white so the background is genuinely bright
     environment: 0.9,
     bloom: 0.06,
     bloomThreshold: 1.35,
@@ -71,56 +84,25 @@ const params: HoloParams = {
   },
 };
 
-/**
- * Render the site's intro lockup onto a transparent canvas → the cloth print.
- * Matches maria-showalter/index.html: "MARIA" Fraunces blue over "Showalter"
- * Fraunces italic black — legible because the fabric is white.
- */
-async function makeNameTexture(): Promise<HTMLImageElement> {
-  try {
-    await (document as unknown as { fonts: FontFaceSet }).fonts.load("600 150px 'Fraunces'");
-    await (document as unknown as { fonts: FontFaceSet }).fonts.load("italic 400 150px 'Fraunces'");
-    await (document as unknown as { fonts: FontFaceSet }).fonts.ready;
-  } catch {
-    /* fall back to serif */
-  }
-  const w = 1200, h = 900;
-  const cv = document.createElement('canvas');
-  cv.width = w; cv.height = h;
-  const ctx = cv.getContext('2d')!;
-  ctx.clearRect(0, 0, w, h);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#0044ff'; // MARIA — site blue
-  ctx.font = "600 300px 'Fraunces', Georgia, serif";
-  ctx.fillText('MARIA', w / 2, h * 0.35);
-  ctx.fillStyle = '#0a0a0a'; // Showalter — site ink black, italic
-  ctx.font = "italic 400 210px 'Fraunces', Georgia, serif";
-  ctx.fillText('Showalter', w / 2, h * 0.66);
-  const img = new Image();
-  await new Promise<void>((res) => { img.onload = () => res(); img.src = cv.toDataURL('image/png'); });
-  return img;
-}
+const KNOBS: Knob[] = [
+  { id: 'shimmer', label: 'Shimmer', min: 0, max: 3, step: 0.05, value: params.material.holoIntensity,
+    apply: (v) => { params.material.holoIntensity = v; app.applyParams(params); } },
+  { id: 'sparkle', label: 'Sparkle', min: 0, max: 1, step: 0.02, value: params.material.sparkle,
+    apply: (v) => { params.material.sparkle = v; app.applyParams(params); } },
+  { id: 'iridescence', label: 'Iridescence', min: 0, max: 1, step: 0.02, value: params.material.iridescence,
+    apply: (v) => { params.material.iridescence = v; app.applyParams(params); } },
+  { id: 'wrinkle', label: 'Wrinkle', min: 0, max: 3, step: 0.05, value: params.material.bump,
+    apply: (v) => { params.material.bump = v; app.applyParams(params); } },
+];
 
-function isDark(hex: string): boolean {
-  const c = hex.replace('#', '');
-  const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
-}
-
-function setBackground(btn: HTMLElement) {
-  const hex = btn.dataset.bg!;
-  const noise = btn.dataset.noise !== undefined ? Number(btn.dataset.noise) : 0.12;
-  const exposure = btn.dataset.exposure !== undefined ? Number(btn.dataset.exposure) : 0.62;
-  params.render.background = hex;
-  params.render.noise = noise;
-  params.render.exposure = exposure;
-  app.applyParams(params);
-  document.body.style.background = hex;
-  const dark = isDark(hex);
-  document.documentElement.style.setProperty('--ink', dark ? '#f8f6f3' : '#0a0a0a');
-  document.querySelectorAll<HTMLElement>('.dark-aware').forEach((el) => el.classList.toggle('dark', dark));
-  document.querySelectorAll<HTMLElement>('.sw').forEach((el) => el.classList.toggle('active', el === btn));
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
 }
 
 /** Apply a brand palette: recolor the cloth sheen AND the page accent. */
@@ -134,47 +116,52 @@ function applyPalette(pal: Palette) {
   );
 }
 
-function buildPalettePanel() {
+function buildPanel() {
   const list = document.getElementById('pal-list');
-  if (!list) return;
-  for (const pal of PALETTES) {
-    const btn = document.createElement('button');
-    btn.className = 'pal';
-    btn.dataset.name = pal.name;
-    btn.innerHTML =
-      `<span class="pal-chip" style="background:linear-gradient(120deg,${pal.holo[0]},${pal.holo[1]},${pal.holo[2]})"></span>` +
-      `<span class="pal-text"><b>${pal.name}</b><small>${pal.sub}</small></span>`;
-    btn.addEventListener('click', () => applyPalette(pal));
-    list.appendChild(btn);
+  if (list) {
+    for (const pal of PALETTES) {
+      const btn = document.createElement('button');
+      btn.className = 'pal';
+      btn.dataset.name = pal.name;
+      btn.innerHTML =
+        `<span class="pal-chip" style="background:linear-gradient(120deg,${pal.holo[0]},${pal.holo[1]},${pal.holo[2]})"></span>` +
+        `<span class="pal-text"><b>${pal.name}</b><small>${pal.sub}</small></span>`;
+      btn.addEventListener('click', () => applyPalette(pal));
+      list.appendChild(btn);
+    }
   }
-}
 
-function wireControls() {
-  document.querySelectorAll<HTMLButtonElement>('.sw').forEach((btn) => {
-    btn.addEventListener('click', () => setBackground(btn));
-  });
-  document.getElementById('reset')?.addEventListener('click', () => {
-    app.flattenCloth();
-  });
-  const shimmer = document.getElementById('shimmer') as HTMLInputElement | null;
-  shimmer?.addEventListener('input', () => {
-    params.material.holoIntensity = Number(shimmer.value);
-    app.applyParams(params);
-  });
-  buildPalettePanel();
+  const knobs = document.getElementById('knob-list');
+  if (knobs) {
+    for (const k of KNOBS) {
+      const row = document.createElement('div');
+      row.className = 'knob';
+      row.innerHTML =
+        `<label>${k.label}</label>` +
+        `<input type="range" id="${k.id}" min="${k.min}" max="${k.max}" step="${k.step}" value="${k.value}" />`;
+      knobs.appendChild(row);
+      const input = row.querySelector('input')!;
+      input.addEventListener('input', () => k.apply(Number(input.value)));
+    }
+  }
+
+  document.getElementById('reset')?.addEventListener('click', () => app.flattenCloth());
   applyPalette(PALETTES[0]);
-  const paper = document.querySelector<HTMLElement>('.sw[data-paper]');
-  if (paper) setBackground(paper);
 }
 
 async function boot() {
   app.applyParams(params);
-  const nameImg = await makeNameTexture();
-  app.setClothImage(nameImg);
+  // drape the portrait; if it fails to load, the cloth stays a blank sheet
+  try {
+    const portrait = await loadImage('/portrait.png');
+    app.setClothImage(portrait);
+  } catch {
+    /* no image — leave the plain holographic sheet */
+  }
   app.flattenCloth();        // open flat & still
   app.applyParams(params);   // re-apply uniforms after the cloth rebuild
   app.reveal();
-  wireControls();
+  buildPanel();
 }
 
 boot();
