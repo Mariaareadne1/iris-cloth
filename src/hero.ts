@@ -108,6 +108,10 @@ function applyPalette(pal: Palette) {
   document.querySelectorAll<HTMLElement>('.pal').forEach((el) =>
     el.classList.toggle('active', el.dataset.name === pal.name),
   );
+  // when embedded (iframe), let the host page re-theme itself to match
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'iris-palette', name: pal.name, accent: pal.accent, holo: pal.holo }, '*');
+  }
 }
 
 function buildPanel() {
@@ -175,7 +179,9 @@ function buildPanel() {
  *  dropped inside another page (e.g. an iframe) as just the living cloth. */
 function applyBareMode() {
   if (!new URLSearchParams(location.search).has('bare')) return;
-  document.querySelectorAll<HTMLElement>('.overlay, .hero-controls, .panel')
+  // hide only the kicker/sub caption; keep the control cluster (reset,
+  // prefer-colour) and the colour panel (which stays hidden until invited)
+  document.querySelectorAll<HTMLElement>('.overlay')
     .forEach((el) => { el.style.display = 'none'; });
 }
 
