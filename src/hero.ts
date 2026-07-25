@@ -15,18 +15,14 @@ interface Palette {
   accent: string;                  // page/accent colour this palette themes
 }
 
-// Ten palettes to choose from — pick your favourite four.
+// Default is Black & White (blends with the real site header); the colour
+// palettes live behind the "prefer it in colour?" toggle.
 const PALETTES: Palette[] = [
-  { name: 'Iris',    sub: 'blue · violet',   holo: ['#0044ff', '#6a4bff', '#22c1ff'], accent: '#0044ff' },
-  { name: 'Sunset',  sub: 'orange · blue',   holo: ['#0044ff', '#ff7a1a', '#ffd24d'], accent: '#ff6a00' },
-  { name: 'Ice',     sub: 'cyan',            holo: ['#0aa3ff', '#22c1ff', '#cfeaff'], accent: '#0aa3ff' },
-  { name: 'Rose',    sub: 'magenta · blue',  holo: ['#0044ff', '#ff4dc4', '#8a5cff'], accent: '#e0359a' },
-  { name: 'Chrome',  sub: 'steel · blue',    holo: ['#5a78ff', '#c9d6ff', '#8fb2ff'], accent: '#5a78ff' },
-  { name: 'Emerald', sub: 'green · blue',    holo: ['#0044ff', '#12c2a0', '#7bf0c0'], accent: '#0aa06e' },
-  { name: 'Gold',    sub: 'gold · blue',     holo: ['#0044ff', '#ffcf4d', '#fff2c2'], accent: '#d99a00' },
-  { name: 'Grape',   sub: 'violet · pink',   holo: ['#6a4bff', '#c04bff', '#ff8adf'], accent: '#8a2be2' },
-  { name: 'Aqua',    sub: 'teal · cyan',     holo: ['#0aa3ff', '#12e0c0', '#c7fff2'], accent: '#00b3a4' },
-  { name: 'Ember',   sub: 'red · orange',    holo: ['#ff3b3b', '#ff7a1a', '#ffd24d'], accent: '#ff4d2e' },
+  { name: 'Black & White', sub: 'mono · silver', holo: ['#f4f4f6', '#c9ccd4', '#9aa0ad'], accent: '#0044ff' },
+  { name: 'Sunset', sub: 'orange · blue', holo: ['#0044ff', '#ff7a1a', '#ffd24d'], accent: '#ff6a00' },
+  { name: 'Ice',    sub: 'cyan',          holo: ['#0aa3ff', '#22c1ff', '#cfeaff'], accent: '#0aa3ff' },
+  { name: 'Gold',   sub: 'gold · blue',   holo: ['#0044ff', '#ffcf4d', '#fff2c2'], accent: '#d99a00' },
+  { name: 'Ember',  sub: 'red · orange',  holo: ['#ff3b3b', '#ff7a1a', '#ffd24d'], accent: '#ff4d2e' },
 ];
 
 // The knobs offered under "Play with" — keep the one or two you like.
@@ -48,7 +44,7 @@ const params: HoloParams = {
     preset: 'Holo',
     finish: 'Glossy',
     baseColor: '#eef1fb',
-    holoIntensity: 1.2,
+    holoIntensity: 0.9,
     holoScale: 300,
     bandFreq: 0.9,
     saturation: 0.95,
@@ -87,12 +83,6 @@ const params: HoloParams = {
 const KNOBS: Knob[] = [
   { id: 'shimmer', label: 'Shimmer', min: 0, max: 3, step: 0.05, value: params.material.holoIntensity,
     apply: (v) => { params.material.holoIntensity = v; app.applyParams(params); } },
-  { id: 'sparkle', label: 'Sparkle', min: 0, max: 1, step: 0.02, value: params.material.sparkle,
-    apply: (v) => { params.material.sparkle = v; app.applyParams(params); } },
-  { id: 'iridescence', label: 'Iridescence', min: 0, max: 1, step: 0.02, value: params.material.iridescence,
-    apply: (v) => { params.material.iridescence = v; app.applyParams(params); } },
-  { id: 'wrinkle', label: 'Wrinkle', min: 0, max: 3, step: 0.05, value: params.material.bump,
-    apply: (v) => { params.material.bump = v; app.applyParams(params); } },
 ];
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -146,6 +136,16 @@ function buildPanel() {
   }
 
   document.getElementById('reset')?.addEventListener('click', () => app.flattenCloth());
+
+  // colour panel stays hidden until invited; default look is Black & White
+  const panel = document.getElementById('panel');
+  const toggle = document.getElementById('color-toggle');
+  toggle?.addEventListener('click', () => { panel?.classList.add('open'); toggle.classList.add('hidden'); });
+  document.getElementById('panel-close')?.addEventListener('click', () => {
+    panel?.classList.remove('open');
+    toggle?.classList.remove('hidden');
+  });
+
   applyPalette(PALETTES[0]);
 }
 
