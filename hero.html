@@ -31,16 +31,20 @@
         color: var(--ink); opacity: .5; max-width: 44vw; line-height: 1.7;
       }
 
-      /* ── "prefer it in colour?" toggle (visible by default) ── */
-      .color-toggle {
+      /* ── always-visible control cluster (bottom-right) ── */
+      .hero-controls {
         position: fixed; bottom: 28px; right: 5vw; z-index: 11;
+        display: flex; gap: 8px; align-items: center;
+      }
+      .pill {
         font-family: inherit; font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
-        color: var(--blue); background: rgba(255,255,255,.7); backdrop-filter: blur(8px);
-        border: 1px solid var(--blue); border-radius: 100px; padding: 9px 16px; cursor: pointer;
+        color: var(--blue); background: rgba(255,255,255,.72); backdrop-filter: blur(8px);
+        border: 1px solid rgba(0,68,255,.4); border-radius: 100px; padding: 9px 14px; cursor: pointer;
         transition: background .2s, color .2s, opacity .25s;
       }
-      .color-toggle:hover { background: var(--blue); color: #fff; }
-      .color-toggle.hidden { opacity: 0; pointer-events: none; }
+      .pill:hover { background: var(--blue); color: #fff; }
+      .pill.accent { border-color: var(--blue); }
+      .pill.hidden { opacity: 0; pointer-events: none; }
 
       /* ── palette panel (hidden until invited) ── */
       .panel {
@@ -102,7 +106,12 @@
       <div class="sub">My portrait on a holographic fabric — grab it to ripple it.</div>
     </div>
 
-    <button class="color-toggle" id="color-toggle">✦ prefer it in colour?</button>
+    <input type="file" id="photo-input" accept="image/*" hidden />
+    <div class="hero-controls">
+      <button class="pill" id="change-photo">change photo</button>
+      <button class="pill" id="reset-main">↻ reset</button>
+      <button class="pill accent" id="color-toggle">✦ prefer it in colour?</button>
+    </div>
 
     <div class="panel" id="panel">
       <div class="panel-head">
@@ -112,7 +121,6 @@
       <div id="pal-list"></div>
       <div class="panel-title">Play with</div>
       <div id="knob-list"></div>
-      <button class="reset" id="reset">reset cloth</button>
     </div>
 
     <script type="module" src="/src/hero.ts"></script>

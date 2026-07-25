@@ -13,16 +13,17 @@ interface Palette {
   sub: string;
   holo: [string, string, string]; // three-stop holographic ramp
   accent: string;                  // page/accent colour this palette themes
+  intensity: number;               // holo sheen strength (B&W stays subtle/white)
 }
 
 // Default is Black & White (blends with the real site header); the colour
 // palettes live behind the "prefer it in colour?" toggle.
 const PALETTES: Palette[] = [
-  { name: 'Black & White', sub: 'mono · silver', holo: ['#f4f4f6', '#c9ccd4', '#9aa0ad'], accent: '#0044ff' },
-  { name: 'Sunset', sub: 'orange · blue', holo: ['#0044ff', '#ff7a1a', '#ffd24d'], accent: '#ff6a00' },
-  { name: 'Ice',    sub: 'cyan',          holo: ['#0aa3ff', '#22c1ff', '#cfeaff'], accent: '#0aa3ff' },
-  { name: 'Gold',   sub: 'gold · blue',   holo: ['#0044ff', '#ffcf4d', '#fff2c2'], accent: '#d99a00' },
-  { name: 'Ember',  sub: 'red · orange',  holo: ['#ff3b3b', '#ff7a1a', '#ffd24d'], accent: '#ff4d2e' },
+  { name: 'Black & White', sub: 'mono · silver', holo: ['#fbfbfc', '#e2e4ea', '#b9bec9'], accent: '#0044ff', intensity: 0.42 },
+  { name: 'Sunset', sub: 'orange · blue', holo: ['#0044ff', '#ff7a1a', '#ffd24d'], accent: '#ff6a00', intensity: 1.15 },
+  { name: 'Ice',    sub: 'cyan',          holo: ['#0aa3ff', '#22c1ff', '#cfeaff'], accent: '#0aa3ff', intensity: 1.1 },
+  { name: 'Gold',   sub: 'gold · blue',   holo: ['#0044ff', '#ffcf4d', '#fff2c2'], accent: '#d99a00', intensity: 1.15 },
+  { name: 'Ember',  sub: 'red · orange',  holo: ['#ff3b3b', '#ff7a1a', '#ffd24d'], accent: '#ff4d2e', intensity: 1.2 },
 ];
 
 // The knobs offered under "Play with" — keep the one or two you like.
@@ -43,8 +44,8 @@ const params: HoloParams = {
   material: {
     preset: 'Holo',
     finish: 'Glossy',
-    baseColor: '#eef1fb',
-    holoIntensity: 0.9,
+    baseColor: '#fbfbfc',
+    holoIntensity: 0.42,
     holoScale: 300,
     bandFreq: 0.9,
     saturation: 0.95,
@@ -99,8 +100,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 function applyPalette(pal: Palette) {
   params.material.paletteMix = 1;
   params.material.palette = pal.holo;
+  params.material.holoIntensity = pal.intensity;
   app.applyParams(params);
   document.documentElement.style.setProperty('--blue', pal.accent);
+  const sh = document.getElementById('shimmer') as HTMLInputElement | null;
+  if (sh) sh.value = String(pal.intensity);
   document.querySelectorAll<HTMLElement>('.pal').forEach((el) =>
     el.classList.toggle('active', el.dataset.name === pal.name),
   );
@@ -135,7 +139,25 @@ function buildPanel() {
     }
   }
 
-  document.getElementById('reset')?.addEventListener('click', () => app.flattenCloth());
+  // always-visible reset (no need to open the colour panel)
+  document.getElementById('reset-main')?.addEventListener('click', () => app.flattenCloth());
+
+  // change the portrait live from the user's own file
+  const photoInput = document.getElementById('photo-input') as HTMLInputElement | null;
+  document.getElementById('change-photo')?.addEventListener('click', () => photoInput?.click());
+  photoInput?.addEventListener('change', async () => {
+    const file = photoInput.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await loadImage(url);
+      app.setClothImage(img);
+      app.flattenCloth();
+      app.applyParams(params);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  });
 
   // colour panel stays hidden until invited; default look is Black & White
   const panel = document.getElementById('panel');
