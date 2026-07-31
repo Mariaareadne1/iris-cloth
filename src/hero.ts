@@ -146,23 +146,6 @@ function buildPanel() {
   // always-visible reset (no need to open the colour panel)
   document.getElementById('reset-main')?.addEventListener('click', () => app.flattenCloth());
 
-  // change the portrait live from the user's own file
-  const photoInput = document.getElementById('photo-input') as HTMLInputElement | null;
-  document.getElementById('change-photo')?.addEventListener('click', () => photoInput?.click());
-  photoInput?.addEventListener('change', async () => {
-    const file = photoInput.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    try {
-      const img = await loadImage(url);
-      app.setClothImage(img);
-      app.flattenCloth();
-      app.applyParams(params);
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  });
-
   // colour panel stays hidden until invited; default look is Black & White
   const panel = document.getElementById('panel');
   const toggle = document.getElementById('color-toggle');

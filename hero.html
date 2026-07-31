@@ -38,9 +38,9 @@
         display: flex; gap: 8px; align-items: center;
       }
       .pill {
-        font-family: inherit; font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
+        font-family: inherit; font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase;
         color: var(--blue); background: rgba(255,255,255,.72); backdrop-filter: blur(8px);
-        border: 1px solid rgba(0,68,255,.4); border-radius: 100px; padding: 9px 14px; cursor: pointer;
+        border: 1px solid rgba(0,68,255,.4); border-radius: 100px; padding: 5px 10px; cursor: pointer;
         transition: background .2s, color .2s, opacity .25s;
       }
       .pill:hover { background: var(--blue); color: #fff; }
@@ -108,9 +108,7 @@
       <div class="sub">My portrait on a holographic fabric — grab it to ripple it.</div>
     </div>
 
-    <input type="file" id="photo-input" accept="image/*" hidden />
     <div class="hero-controls">
-      <button class="pill" id="change-photo">change photo</button>
       <button class="pill" id="reset-main">↻ reset</button>
       <button class="pill accent" id="color-toggle">✦ prefer it in colour?</button>
     </div>
